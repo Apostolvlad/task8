@@ -310,8 +310,31 @@ def start_process(path):
         
 def process_html_table(soup, f, url):
     mode = False
+    print(url, file = f)
     for table in soup.find_all('table'):
-        text = table.get_text().replace('\n\n', '\n')
+        if len(table.find_all('tr')) < 2 and len(table.find('tr').find_all('td')) < 2: continue
+        table_result = list()
+        for i, e in enumerate(table.previous_elements):
+            if i > 5: break
+            if type(e) == bs4.element.Tag and e.name.find('h') != -1: 
+                table_result.append('==============title=============')
+                table_result.append(e.get_text().strip().replace('\n', '').replace('\t', ''))
+                break
+        table_result.append('==============table=============')
+        count_old = len(table_result)
+        for tr in table.find_all('tr'):
+            row = list()
+            for td in tr.find_all('td'):
+                t = td.get_text().strip()
+                if t == '': break
+                row.append(t)
+            if len(row) < 2: continue
+            table_result.append(': '.join(row).replace('\n', '').replace('\t', ''))
+        if len(table_result) - count_old < 2: continue
+        table_result.append('==============end=============')
+        print('\n'.join(table_result), file = f)
+        continue
+        text = table.get_text().replace('\t', '').replace('\n\n', '\n').replace('\n\n', '\n').replace('\n\n', '\n')
         if text.find(' руб') == -1 and text.find('дог.') == -1: continue
         if not mode:
             mode = True
@@ -322,16 +345,17 @@ def process_html_table(soup, f, url):
                 print('==============title=============', file = f)
                 print(e.get_text(), file = f)
                 break
-        tt = 'key'
+        tt1, tt2 = '', ''
         print('==============table=============', file = f)
         for s in text.split('\n'):
             if s == '' or s == '\n': continue
             for s in s.split(': '):
                 if s.find(' руб') != -1 or s.find('дог.') != -1: 
-                    print(f'{tt}: {s}', file = f)
-                    tt = 'key'
+                    print(f'{tt1}:{tt2}: {s}', file = f)
+                    tt1, tt2 = '', ''
                 else:
-                    tt = s
+                    tt1 = tt2
+                    tt2 = s
         if mode:
             print('================end==============', file = f)
             print('\n', file = f)
@@ -343,11 +367,8 @@ def parser_table(urls):
     f = open('tables.txt', 'w', encoding='UTF-8')
     for url in urls:
         b.get(url)
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!', file = f)
-        print(url, file=f)
         soup = BeautifulSoup(b.driver.page_source, 'lxml')
-        process_html_table(soup, f)
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!', file = f)
+        process_html_table(soup, f, url = url)
 
 
 
@@ -357,7 +378,7 @@ def parser_table(urls):
 if __name__ == '__main__':
     #process_tags()
     parser_table((
-        'https://best-sborka.ru/ceny',
-        'https://lideruslug.ru/sborka-mebeli/prajs-list',
-        'https://msksborka.ru/prices'
+        'https://td-tsk.ru/services/plitochnye-raboty/',
+        'https://ukladka-plitki.su/prajs-list',
+        'https://otdelka.by/otdelochnye-raboty/plitochnye-raboty/'
     ))
