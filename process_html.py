@@ -3,6 +3,7 @@ import os
 import re
 import traceback
 from collections import defaultdict
+import bs4
 
 import nltk 
 import pandas as pd
@@ -259,43 +260,94 @@ def start_process_url(url, b):
     with open(f'data_metrics\\state_text.json', "w", encoding='UTF-8') as f:
         f.write(json.dumps(base, indent=4, ensure_ascii=False))
 
-def process(contents, result):
+def process(contents, result, f_tables, url):
     soup = BeautifulSoup(contents, 'lxml')
+    if result:
+        process_tags(soup, result)
+        get_schema_type(contents, result)
+        process_context(soup, result)
+        analyze_parts_speech(result)
+        #analyze_entities(result)
+    process_html_table(soup, f_tables, url)
     
-    process_tags(soup, result)
-    get_schema_type(contents, result)
-    process_context(soup, result)
-    analyze_parts_speech(result)
-    #analyze_entities(result)
     print('OK!')
     
 def start_process(path):
-    if os.path.exists(f'{path}\\state_text.json'): return True
+    if os.path.exists(f'{path}\\state_text.json') and False == True: 
+        with open(f'{path}\\state_text.json', encoding='UTF-8') as f: base = json.load(f)
+        for element in base.values():
+            if element.get("title") != '':
+                return True
     with open(f'{path}\\result.json', encoding='UTF-8') as f: urls = json.load(f)['items']
     print('start process base - ', end = '')
     base = dict()
+    f_tables = open(f'tables.txt', 'a+', encoding='UTF-8')
+    print(path, file=f_tables)
     for url, element in zip(urls, os.listdir(f'{path}\\base')):
         #print(element)
         result = dict()
-        base.update({url['url']:result})
+        if base.get(url['url']) == None:
+            base.update({url['url']:result})
+        else:
+            result = None
         if element.find('html') == -1:continue
         with open(f'{path}\\base\\{element}', encoding='UTF-8') as f: contents = f.read()
         try:
-            process(contents, result)
+            process(contents, result, f_tables = f_tables, url = url['url'])
         except:
             print('not OK!')
             print(url)
             traceback.print_exc()
             continue
         print('process html -', end = '')
+        
     print('finish')
+    f_tables.close()
     with open(f'{path}\\state_text.json', "w", encoding='UTF-8') as f:
         f.write(json.dumps(base, indent=4, ensure_ascii=False))
     print('saved!')
     
         
+def process_html_table(soup, f, url):
+    mode = False
+    for table in soup.find_all('table'):
+        text = table.get_text().replace('\n\n', '\n')
+        if text.find(' руб') == -1 and text.find('дог.') == -1: continue
+        if not mode:
+            mode = True
+            print(url, file=f)
+        for i, e in enumerate(table.previous_elements):
+            if i > 5: break
+            if type(e) == bs4.element.Tag and e.name.find('h') != -1: 
+                print('==============title=============', file = f)
+                print(e.get_text(), file = f)
+                break
+        tt = 'key'
+        print('==============table=============', file = f)
+        for s in text.split('\n'):
+            if s == '' or s == '\n': continue
+            for s in s.split(': '):
+                if s.find(' руб') != -1 or s.find('дог.') != -1: 
+                    print(f'{tt}: {s}', file = f)
+                    tt = 'key'
+                else:
+                    tt = s
+        if mode:
+            print('================end==============', file = f)
+            print('\n', file = f)
 
-
+def parser_table(urls):
+    b = Browser()
+    b.set_show()
+    b.run()
+    f = open('tables.txt', 'w', encoding='UTF-8')
+    for url in urls:
+        b.get(url)
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!', file = f)
+        print(url, file=f)
+        soup = BeautifulSoup(b.driver.page_source, 'lxml')
+        process_html_table(soup, f)
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!', file = f)
 
 
 
@@ -303,5 +355,9 @@ def start_process(path):
 
 
 if __name__ == '__main__':
-    process_tags()
-    
+    #process_tags()
+    parser_table((
+        'https://best-sborka.ru/ceny',
+        'https://lideruslug.ru/sborka-mebeli/prajs-list',
+        'https://msksborka.ru/prices'
+    ))

@@ -108,10 +108,12 @@ class Table:
         for sheet_title in self.sheet_list.keys():
             if sheet_title == '0': continue
             self.select_sheet(sheet_title)
+            print('удаляем лист:', sheet_title)
             self.delete_sheet()
             time.sleep(1)
 
     def update_values(self, data, list_range = "B2:D5"):
+        print(list_range)
         self.service.spreadsheets().values().batchUpdate(spreadsheetId = self.spreadsheetId, body = {
             "valueInputOption": "USER_ENTERED", # Данные воспринимаются, как вводимые пользователем (считается значение формул)
             "data": [

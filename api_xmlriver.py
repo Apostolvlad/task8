@@ -93,7 +93,7 @@ def process(path):
 
 def generation(path, q, loc):
     if os.path.exists(path): 
-        return False
+        if os.path.exists(f'{path}\\result.xml'): return False
     else:
         os.makedirs(path)
     with open(f'{path}\\result.xml', 'w', encoding='UTF-8') as f: 

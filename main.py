@@ -26,5 +26,5 @@ if __name__ == '__main__':
     try:
         main()
     except:
-        traceback.print_exc()
+        traceback.print_exc() 
     input('Процесс завершён.')

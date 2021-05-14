@@ -15,7 +15,10 @@ QUERY2 = 'Наращивание ресниц 2D' # first_query
 URL = 'https://redsale.by/krasota/narashivanie-resnic/2d'
 
 def load_date(path, file_name = 'state_text'):
-    with open(f'{path}\\{file_name}.json', encoding='UTF-8') as f: return json.load(f)
+    try:
+        with open(f'{path}\\{file_name}.json', encoding='UTF-8') as f: return json.load(f)
+    except:
+        return None
 
 def get_data_search_console(url):
     r = list()
@@ -43,6 +46,7 @@ def data_add_word(data_result, base, data_search_console, i_col, count_default =
 
 def process_data1(table, data_query1, data_query2, url, sheet_title, query_tokens):
     if not data_query1: data_query1 = {}
+    if not data_query2: return
     print(sheet_title, ' - ', end='')
     table.select_sheet(sheet_title = sheet_title)
 
@@ -146,8 +150,27 @@ def process_data1(table, data_query1, data_query2, url, sheet_title, query_token
     
     data_table.insert(0, data_sum)
     data_table.insert(1, data_title)
-    table.update_values(data_table, list_range = f'C4:I{len(data_result) + indent_row}') # C3I3!!!
-    table.update_values(data_table_grams, list_range = f'I5:O{len(data_table_grams) + indent_row}') # C3I3!!!
+    step = 1000
+    i_step2 = indent_row
+    for i_step in range(0, len(data_table) + 1, step):
+        b = data_table[i_step:i_step + step]
+        b.append(['',])
+        print(i_step2)
+        tt =  f'C{i_step2}:i{i_step2 + len(b) + 1}'
+        print(tt)
+        table.update_values(b, list_range = tt)
+        i_step2 = i_step2 + len(b) - 1
+        ii = 0
+     # C3I3!!!
+    #table.update_values(data_table, list_range = f'C4:I{len(data_result) + indent_row}') # C3I3!!!
+    i_step2 = indent_row
+    for i_step in range(0, len(data_table_grams) + 1, step):
+        b = data_table_grams[i_step:i_step + step]
+        b.append(['',])
+        table.update_values(b, list_range = f'A{i_step2}:Q{i_step2 + len(b)}')
+        i_step2 = i_step2 + len(b) - 1
+        ii = 0
+     # C3I3!!!
     table.set_format_Cell(setting_cells)
     print('ok', flush=True)
 
@@ -217,6 +240,7 @@ def process_metric():
     print('check tables')
     for table_id in table_ids:
         table = service_table.Table(table_id)
+        print('очищаем таблицу', table.table_title)
         #table.delete_sheet_all()
         base_table.update({table:len(table.sheet_list)})
         sheet_names.extend(table.sheet_list)
@@ -226,7 +250,10 @@ def process_metric():
     
     for sheet_title, url in base_info.items():
         if sheet_title in sheet_names: continue
-        data_query1 = load_date('data_metrics').get(url)
+        try:
+            data_query1 = load_date('data_metrics').get(url)
+        except:
+            data_query1 = None
         data_query2 = list()
         data_result = list()
         for loc_name in LOCS:
