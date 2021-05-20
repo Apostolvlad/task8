@@ -260,20 +260,17 @@ def start_process_url(url, b):
     with open(f'data_metrics\\state_text.json', "w", encoding='UTF-8') as f:
         f.write(json.dumps(base, indent=4, ensure_ascii=False))
 
-def process(contents, result, f_tables, url):
+def process(contents, result):
     soup = BeautifulSoup(contents, 'lxml')
-    if result:
-        process_tags(soup, result)
-        get_schema_type(contents, result)
-        process_context(soup, result)
-        analyze_parts_speech(result)
-        #analyze_entities(result)
-    process_html_table(soup, f_tables, url)
-    
+    process_tags(soup, result)
+    get_schema_type(contents, result)
+    process_context(soup, result)
+    analyze_parts_speech(result)
+    #analyze_entities(result)
     print('OK!')
     
-def start_process(path):
-    if os.path.exists(f'{path}\\state_text.json') and False == True: 
+def start_process(path, base_parsing_tables):
+    if os.path.exists(f'{path}\\state_text.json'): 
         with open(f'{path}\\state_text.json', encoding='UTF-8') as f: base = json.load(f)
         for element in base.values():
             if element.get("title") != '':
@@ -281,8 +278,6 @@ def start_process(path):
     with open(f'{path}\\result.json', encoding='UTF-8') as f: urls = json.load(f)['items']
     print('start process base - ', end = '')
     base = dict()
-    f_tables = open(f'tables.txt', 'a+', encoding='UTF-8')
-    print(path, file=f_tables)
     for url, element in zip(urls, os.listdir(f'{path}\\base')):
         #print(element)
         result = dict()
@@ -293,7 +288,11 @@ def start_process(path):
         if element.find('html') == -1:continue
         with open(f'{path}\\base\\{element}', encoding='UTF-8') as f: contents = f.read()
         try:
-            process(contents, result, f_tables = f_tables, url = url['url'])
+            process(contents, result)
+            if url['url']:
+                soup = BeautifulSoup(contents, 'lxml')
+                r = process_html_table(soup, url['url'])
+                if len(r) > 3:base_parsing_tables.extend(r)
         except:
             print('not OK!')
             print(url)
@@ -302,73 +301,46 @@ def start_process(path):
         print('process html -', end = '')
         
     print('finish')
-    f_tables.close()
     with open(f'{path}\\state_text.json', "w", encoding='UTF-8') as f:
         f.write(json.dumps(base, indent=4, ensure_ascii=False))
     print('saved!')
     
         
-def process_html_table(soup, f, url):
-    mode = False
-    print(url, file = f)
+def process_html_table(soup, url):
+    result = list()
+    result.append((url, '', '', ''))
     for table in soup.find_all('table'):
         if len(table.find_all('tr')) < 2 and len(table.find('tr').find_all('td')) < 2: continue
-        table_result = list()
         for i, e in enumerate(table.previous_elements):
             if i > 5: break
             if type(e) == bs4.element.Tag and e.name.find('h') != -1: 
-                table_result.append('==============title=============')
-                table_result.append(e.get_text().strip().replace('\n', '').replace('\t', ''))
+                title = e.get_text().strip().replace('\n', '').replace('\t', '')
+                result.append((title, '', '', ''))
                 break
-        table_result.append('==============table=============')
-        count_old = len(table_result)
         for tr in table.find_all('tr'):
             row = list()
             for td in tr.find_all('td'):
-                t = td.get_text().strip()
+                t = td.get_text().strip().replace('\n', '').replace('\t', '')
                 if t == '': break
                 row.append(t)
             if len(row) < 2: continue
-            table_result.append(': '.join(row).replace('\n', '').replace('\t', ''))
-        if len(table_result) - count_old < 2: continue
-        table_result.append('==============end=============')
-        print('\n'.join(table_result), file = f)
-        continue
-        text = table.get_text().replace('\t', '').replace('\n\n', '\n').replace('\n\n', '\n').replace('\n\n', '\n')
-        if text.find(' руб') == -1 and text.find('дог.') == -1: continue
-        if not mode:
-            mode = True
-            print(url, file=f)
-        for i, e in enumerate(table.previous_elements):
-            if i > 5: break
-            if type(e) == bs4.element.Tag and e.name.find('h') != -1: 
-                print('==============title=============', file = f)
-                print(e.get_text(), file = f)
-                break
-        tt1, tt2 = '', ''
-        print('==============table=============', file = f)
-        for s in text.split('\n'):
-            if s == '' or s == '\n': continue
-            for s in s.split(': '):
-                if s.find(' руб') != -1 or s.find('дог.') != -1: 
-                    print(f'{tt1}:{tt2}: {s}', file = f)
-                    tt1, tt2 = '', ''
-                else:
-                    tt1 = tt2
-                    tt2 = s
-        if mode:
-            print('================end==============', file = f)
-            print('\n', file = f)
+            for _ in range(4 - len(row)):
+                row.append('')
+            result.append(tuple(row[:4]))
+    result.append(('', '', '', ''))
+    return result
 
 def parser_table(urls):
     b = Browser()
     b.set_show()
     b.run()
-    f = open('tables.txt', 'w', encoding='UTF-8')
+    result = list()
     for url in urls:
         b.get(url)
         soup = BeautifulSoup(b.driver.page_source, 'lxml')
-        process_html_table(soup, f, url = url)
+        r = process_html_table(soup, url = url)
+        if len(r) > 2:result.append(r)
+    return result
 
 
 

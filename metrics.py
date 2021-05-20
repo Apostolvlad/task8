@@ -167,7 +167,7 @@ def process_data1(table, data_query1, data_query2, url, sheet_title, query_token
     for i_step in range(0, len(data_table_grams) + 1, step):
         b = data_table_grams[i_step:i_step + step]
         b.append(['',])
-        table.update_values(b, list_range = f'A{i_step2}:Q{i_step2 + len(b)}')
+        table.update_values(b, list_range = f'J{i_step2}:Q{i_step2 + len(b)}')
         i_step2 = i_step2 + len(b) - 1
         ii = 0
      # C3I3!!!
@@ -241,7 +241,7 @@ def process_metric():
     for table_id in table_ids:
         table = service_table.Table(table_id)
         print('очищаем таблицу', table.table_title)
-        #table.delete_sheet_all()
+        table.delete_sheet_all()
         base_table.update({table:len(table.sheet_list)})
         sheet_names.extend(table.sheet_list)
     print('process metric')
@@ -265,6 +265,10 @@ def process_metric():
         process_data1(table, data_query1, data_query2, url, sheet_title, query_tokens = query_tokens)
         #process_data2(table, data_result, data_query1, data_query2, sheet_title)
 
+def generate_tables(base_parsing_tables, table_id = '1utinFVgu39rsTpZRKim5lsqtquFRdsFG2EXYQFyC5hg'):
+    table = service_table.Table(table_id)
+    table.select_sheet('0')
+    table.update_values(base_parsing_tables, list_range = None)
 
 if __name__ == '__main__':
     process_metric()

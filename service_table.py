@@ -91,7 +91,9 @@ class Table:
                 }
             ]
             }).execute() #'replies': [{'addSheet': {'properties': {'sheetId
-        return results['replies'][0]['addSheet']['properties']['sheetId']
+        sheet_id = results['replies'][0]['addSheet']['properties']['sheetId']
+        self.sheet_list.update({sheet_title:sheet_id})
+        return sheet_id
 
     def delete_sheet(self):
         body = {
@@ -102,18 +104,33 @@ class Table:
         self.service.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheetId,
             body=body).execute()
+        for key, id_ in self.sheet_list.items():
+            if id_ == self.sheetId:break
+        self.sheet_list.pop(key)
+                
 
     def delete_sheet_all(self):
-        self.create_sheet('0')
-        for sheet_title in self.sheet_list.keys():
+        self.select_sheet('1')
+        self.select_sheet('0')
+        self.delete_sheet()
+        time.sleep(0.5)
+        self.select_sheet('0')
+        self.select_sheet('1')
+        time.sleep(0.5)
+        self.delete_sheet()
+        time.sleep(0.5)
+        for sheet_title in list(self.sheet_list.keys()):
             if sheet_title == '0': continue
             self.select_sheet(sheet_title)
             print('удаляем лист:', sheet_title)
             self.delete_sheet()
-            time.sleep(1)
+            time.sleep(0.5)
 
-    def update_values(self, data, list_range = "B2:D5"):
+    def update_values(self, data, list_range = "B2:D5", row = 1, col = 1):
         print(list_range)
+        if len(data) == 0: return
+        if list_range is None:
+            list_range = f'{chr(64 + col)}{row}:{chr(64 + len(data[0]))}{len(data) + 1}'
         self.service.spreadsheets().values().batchUpdate(spreadsheetId = self.spreadsheetId, body = {
             "valueInputOption": "USER_ENTERED", # Данные воспринимаются, как вводимые пользователем (считается значение формул)
             "data": [
