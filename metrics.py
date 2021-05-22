@@ -163,7 +163,7 @@ def process_data1(table, data_query1, data_query2, url, sheet_title, query_token
         ii = 0
      # C3I3!!!
     #table.update_values(data_table, list_range = f'C4:I{len(data_result) + indent_row}') # C3I3!!!
-    i_step2 = indent_row
+    i_step2 = indent_row + 1
     for i_step in range(0, len(data_table_grams) + 1, step):
         b = data_table_grams[i_step:i_step + step]
         b.append(['',])
