@@ -142,7 +142,7 @@ class Table:
                 }
             ]
         }).execute()
-        time.sleep(0.5)
+        time.sleep(1)
     
     def set_size_colomn(self):
         self.service.spreadsheets().batchUpdate(spreadsheetId = self.spreadsheetId, body = {
