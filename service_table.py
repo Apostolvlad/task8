@@ -111,6 +111,7 @@ class Table:
 
     def delete_sheet_all(self):
         self.select_sheet('1')
+        time.sleep(0.5)
         self.select_sheet('0')
         self.delete_sheet()
         time.sleep(0.5)
@@ -127,7 +128,7 @@ class Table:
             time.sleep(0.5)
 
     def update_values(self, data, list_range = "B2:D5", row = 1, col = 1):
-        print(list_range)
+        #print(list_range)
         if len(data) == 0: return
         if list_range is None:
             list_range = f'{chr(64 + col)}{row}:{chr(64 + len(data[0]))}{len(data) + 1}'
@@ -141,6 +142,7 @@ class Table:
                 }
             ]
         }).execute()
+        time.sleep(0.5)
     
     def set_size_colomn(self):
         self.service.spreadsheets().batchUpdate(spreadsheetId = self.spreadsheetId, body = {
