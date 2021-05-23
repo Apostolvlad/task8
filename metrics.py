@@ -150,7 +150,7 @@ def process_data1(table, data_query1, data_query2, url, sheet_title, query_token
     
     data_table.insert(0, data_sum)
     data_table.insert(1, data_title)
-    step = 1000
+    step = 500
     i_step2 = indent_row
     for i_step in range(0, len(data_table) + 1, step):
         b = data_table[i_step:i_step + step]
