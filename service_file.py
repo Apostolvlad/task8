@@ -11,6 +11,10 @@ def save_json(base, name):
     with open(f'{name}.json', "w", encoding='UTF-8') as f:
         f.write(json.dumps(base, indent=4, ensure_ascii=False))
 
+def write_txt(base, name):
+    with open(f'{name}.txt', "w", encoding='UTF-8') as f:
+        f.write('\n'.join(base))
+
 def cvs_convert_json(filename, titles = None):
     result = list()
     with open(filename, encoding='UTF-8') as f:

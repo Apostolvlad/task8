@@ -268,8 +268,24 @@ def process(contents, result):
     analyze_parts_speech(result)
     #analyze_entities(result)
     print('OK!')
-    
-def start_process(path, base_parsing_tables):
+
+def process_table(path, base_parsing_tables):
+    with open(f'{path}\\result.json', encoding='UTF-8') as f: urls = json.load(f)['items']
+    print('process get tables -', end = '')
+    for url, element in zip(urls, os.listdir(f'{path}\\base')):
+        with open(f'{path}\\base\\{element}', encoding='UTF-8') as f: contents = f.read()
+        try:
+            if url['url']:
+                soup = BeautifulSoup(contents, 'lxml')
+                process_html_table(soup, url['url'], base_parsing_tables)
+            print('OK!')
+        except:
+            print('not OK!')
+            print(url)
+            traceback.print_exc()
+            continue
+        print('process get tables -', end = '')
+def start_process(path):
     if os.path.exists(f'{path}\\state_text.json'): 
         with open(f'{path}\\state_text.json', encoding='UTF-8') as f: base = json.load(f)
         for element in base.values():
@@ -289,10 +305,6 @@ def start_process(path, base_parsing_tables):
         with open(f'{path}\\base\\{element}', encoding='UTF-8') as f: contents = f.read()
         try:
             process(contents, result)
-            if url['url']:
-                soup = BeautifulSoup(contents, 'lxml')
-                r = process_html_table(soup, url['url'])
-                if len(r) > 3:base_parsing_tables.extend(r)
         except:
             print('not OK!')
             print(url)
@@ -306,11 +318,13 @@ def start_process(path, base_parsing_tables):
     print('saved!')
     
         
-def process_html_table(soup, url):
+def process_html_table(soup, url, base_parsing_tables):
+    if soup is None: return
     result = list()
     result.append((url, '', '', ''))
     for table in soup.find_all('table'):
-        if len(table.find_all('tr')) < 2 and len(table.find('tr').find_all('td')) < 2: continue
+        tr = table.find_all('tr')
+        if tr and len(tr) < 2 and len(tr[0].find_all('td')) < 2: continue
         for i, e in enumerate(table.previous_elements):
             if i > 5: break
             if type(e) == bs4.element.Tag and e.name.find('h') != -1: 
@@ -328,7 +342,7 @@ def process_html_table(soup, url):
                 row.append('')
             result.append(tuple(row[:4]))
     result.append(('', '', '', ''))
-    return result
+    if len(result) > 3:base_parsing_tables.extend(result)
 
 def parser_table(urls):
     b = Browser()

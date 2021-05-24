@@ -233,7 +233,7 @@ def get_currect_table(base_table, count_max = 50):
             return table
     raise Exception('Подходящие таблицы кончились!')
 
-def process_metric():
+def process_metric(): 
     table_ids = ('1utinFVgu39rsTpZRKim5lsqtquFRdsFG2EXYQFyC5hg', '1b5iLmSZJBmxmjT-EYCxXf4TUdRM0qB6BkuM0GczRS2U', '1alZ1WT_aB9q25gU583VF365JtExhxTzX3UM9C4b3mlQ', '1Ev16Q50Sa8i-zUhuO7XvTvTiuJ6SZN9DdFjfeNp12-Y', '1M2knu0DHyXUuLVogW9tzHi0DLRmemU4cIoQd2yboV3U', '1PWQvwiUD7ErWmp0lRYV9KH-zp1IBD2mMMeSok7mzhRM')
     base_table = dict()
     sheet_names = list()
@@ -270,6 +270,13 @@ def generate_tables(base_parsing_tables, table_id = '1utinFVgu39rsTpZRKim5lsqtqu
     table.select_sheet('0')
     table.update_values(base_parsing_tables, list_range = None)
 
+def load_query():
+    import os
+    from service_file import write_txt
+    write_txt(os.listdir('data\\20954'), 'query')
+
 if __name__ == '__main__':
     process_metric()
+
+    #load_query()
     
