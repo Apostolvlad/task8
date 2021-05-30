@@ -57,6 +57,7 @@ def process(path):
     except:
         with open(f'{path}\\result.json', "w", encoding='UTF-8') as f:
             f.write(json.dumps({}, indent=4, ensure_ascii=False))
+        return 
     if doc.getElementsByTagName('localresultsplace'): base.update({"local_result":True})
     if doc.getElementsByTagName('applications'): base.update({"applications":True})
 
