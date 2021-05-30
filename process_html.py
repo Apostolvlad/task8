@@ -342,7 +342,7 @@ def process_html_table(soup, url, base_parsing_tables):
                 row.append('')
             result.append(tuple(row[:4]))
     result.append(('', '', '', ''))
-    if len(result) > 3:base_parsing_tables.extend(result)
+    if len(result) > 3:base_parsing_tables[0].extend(result)
 
 def parser_table(urls):
     b = Browser()

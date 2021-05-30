@@ -195,6 +195,39 @@ class Table:
             }
             requests.append(setting_cell)
         self.service.spreadsheets().batchUpdate(spreadsheetId = self.spreadsheetId, body = {"requests": requests}).execute()
+    
+    def set_format_Cell2(self, cells):
+        if not len(cells): return
+        requests = list()
+        for cell in cells:
+            setting_cell = {
+                "repeatCell": 
+                {
+                    "cell": 
+                    {
+                    "userEnteredFormat": 
+                    {
+                        "backgroundColor": {
+                            "red": 0.2,
+                            "green": 0.7,
+                            "blue": 0.2,
+                            "alpha": 1
+                        },
+                    }
+                    },
+                    "range":{
+                        "sheetId": self.sheetId,
+                        "startRowIndex": cell[0],
+                        "endRowIndex": cell[0],
+                        "startColumnIndex": cell[1],
+                        "endColumnIndex": 0
+                    },
+                    "fields": "userEnteredFormat"
+                }
+            }
+            requests.append(setting_cell)
+        self.service.spreadsheets().batchUpdate(spreadsheetId = self.spreadsheetId, body = {"requests": requests}).execute()
+
 
 
 if __name__ == '__main__':

@@ -7,10 +7,10 @@ from setting import BASE_QUERY, LOCS
 
 # 0 - выключение, 1 - включение!
 #################################
-XML_MODE = 1 # парсинг с xmlriver
-HTML_MODE = 1 # парсинг html по url полученным с xmlriver, используется chrome
+XML_MODE = 0 # парсинг с xmlriver
+HTML_MODE = 0 # парсинг html по url полученным с xmlriver, используется chrome
 TABLE_MODE = 1 # генерирование таблиц с сохраннённых html страниц
-METRIC_MODE = 1 # генерирование метрик лист = данные по query
+METRIC_MODE = 0 # генерирование метрик лист = данные по query
 #################################
 def main(): 
     b = process_html.Browser()
@@ -31,11 +31,12 @@ def main():
                 process_html.start_process(path)
                 
     if TABLE_MODE:
-        base_parsing_tables = list()
+        base_parsing_tables = [[], []] # данные, стили данных
         for loc in LOCS:
-            for q, url in base_tables.items():
+            for q, url in list(base_tables.items()):
                 path = f'data\\{loc}\\{q}'  
-                base_parsing_tables.append((q, '', '', '', ''))
+                base_parsing_tables[0].append((q, '', '', '', ''))
+                base_parsing_tables[1].append((len(base_parsing_tables[0]) - 1, 0))
                 process_html.process_table(path, base_parsing_tables)
         metrics.generate_tables(base_parsing_tables)
 

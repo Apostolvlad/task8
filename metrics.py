@@ -267,8 +267,18 @@ def process_metric():
 
 def generate_tables(base_parsing_tables, table_id = '1utinFVgu39rsTpZRKim5lsqtquFRdsFG2EXYQFyC5hg'):
     table = service_table.Table(table_id)
+    m0 = len(table.sheet_list) == 1
+    if m0:
+        table.select_sheet('1')
     table.select_sheet('0')
-    table.update_values(base_parsing_tables, list_range = None)
+    table.delete_sheet()
+    table.select_sheet('0')
+    if m0:
+        table.select_sheet('1')
+        table.delete_sheet()
+        table.select_sheet('0')
+    table.update_values(base_parsing_tables[0], list_range = None)
+    table.set_format_Cell(base_parsing_tables[1])
 
 def load_query():
     import os
